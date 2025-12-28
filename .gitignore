@@ -42,3 +42,10 @@ next-env.d.ts
 
 # Config (contains secrets)
 config.js
+
+# Service account credentials (keep secure!)
+*.json
+!package.json
+!package-lock.json
+!jsconfig.json
+!tsconfig.json
