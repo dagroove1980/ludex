@@ -3,11 +3,30 @@
   "version": "1.0.0",
   "description": "AI-powered board game rulebook companion - Turn PDFs into Play",
   "scripts": {
-    "dev": "vercel dev",
-    "build": "node vercel-build.js",
-    "deploy": "vercel --prod"
+    "dev": "next dev",
+    "build": "node vercel-build.js && next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
-    "googleapis": "^126.0.0"
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "next-auth": "^4.24.0",
+    "googleapis": "^129.0.0",
+    "@vercel/blob": "^0.19.0",
+    "pdf-parse": "^1.1.1",
+    "@google/generative-ai": "^0.21.0",
+    "axios": "^1.6.2",
+    "cheerio": "^1.0.0-rc.12",
+    "sharp": "^0.33.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "tailwindcss": "^3.3.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
   }
 }
