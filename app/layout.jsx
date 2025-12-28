@@ -1,5 +1,5 @@
 import './globals.css';
-import { SessionProvider } from './providers';
+import { Providers } from './providers';
 
 export const metadata = {
   title: 'Ludex - Board Game Companion',
@@ -10,7 +10,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <SessionProvider>{children}</SessionProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
