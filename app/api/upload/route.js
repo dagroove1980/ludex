@@ -56,8 +56,13 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error('Upload error:', error);
+    console.error('Error stack:', error.stack);
     return Response.json(
-      { error: 'Failed to upload file', details: error.message },
+      { 
+        error: 'Failed to upload file', 
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     );
   }
