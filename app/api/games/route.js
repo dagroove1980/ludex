@@ -2,6 +2,8 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { getUserGames } from '@/lib/sheets';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   try {
     const session = await getServerSession(authOptions);
