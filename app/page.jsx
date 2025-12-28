@@ -6,9 +6,6 @@ import UploadForm from '@/components/UploadForm';
 import GameCard from '@/components/GameCard';
 import { useEffect, useState } from 'react';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-
 export default function Home() {
   const { data: session, status } = useSession();
   const [games, setGames] = useState([]);
