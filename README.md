@@ -31,3 +31,5 @@ Set in Vercel dashboard:
 1. Check `google-sheets-schema.md` for sheet structure
 2. Your Google Sheet should be set up with the proper columns
 3. Share sheet with service account email (Editor access)
+
+# Force fresh deployment - Sun Dec 28 20:38:56 IST 2025
