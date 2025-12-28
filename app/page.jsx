@@ -6,10 +6,6 @@ import UploadForm from '@/components/UploadForm';
 import GameCard from '@/components/GameCard';
 import { useEffect, useState } from 'react';
 
-// Force dynamic rendering - can't be static because of useSession
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 export default function Home() {
   const { data: session, status } = useSession();
   const [games, setGames] = useState([]);
