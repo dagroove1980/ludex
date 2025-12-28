@@ -1,0 +1,13 @@
+{
+  "name": "ludex",
+  "version": "1.0.0",
+  "description": "AI-powered board game rulebook companion - Turn PDFs into Play",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "node vercel-build.js",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "googleapis": "^126.0.0"
+  }
+}
