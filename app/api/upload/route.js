@@ -43,11 +43,25 @@ export async function POST(request) {
       ? `https://${process.env.VERCEL_URL}`
       : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     
+    console.log('Triggering processing for game:', gameId);
     fetch(`${baseUrl}/api/process`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ gameId }),
-    }).catch(err => console.error('Failed to trigger processing:', err));
+    })
+    .then(res => {
+      if (!res.ok) {
+        console.error('Processing trigger failed:', res.status, res.statusText);
+        return res.text().then(text => {
+          console.error('Processing error response:', text);
+        });
+      }
+      console.log('Processing triggered successfully');
+    })
+    .catch(err => {
+      console.error('Failed to trigger processing:', err);
+      console.error('Error details:', err.message, err.stack);
+    });
 
     return Response.json({
       gameId,
