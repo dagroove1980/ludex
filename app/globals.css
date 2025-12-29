@@ -16,11 +16,83 @@ body {
 
 body {
   color: #1f2937;
-  background: #f9fafb;
+  background: #f7f6f8;
+  font-family: 'Inter', sans-serif;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Custom scrollbar for dark mode */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #191022;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #332a3f;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #473b54;
+}
+
+/* Light mode scrollbar */
+.light-scrollbar::-webkit-scrollbar-track {
+  background: #f7f6f8;
+}
+
+.light-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+}
+
+.light-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Animation for spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin 3s linear infinite;
+}
+
+/* Selection styling */
+::selection {
+  background-color: #7f13ec;
+  color: white;
+}
+
+/* Scrollbar utilities */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-default::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-default::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.scrollbar-default::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.scrollbar-default::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
