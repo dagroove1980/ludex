@@ -38,29 +38,22 @@ export async function POST(request) {
       pdfFileName: file.name,
     });
 
-    // Trigger processing (async) - use internal URL in production
+    // Trigger processing (truly async - don't wait for response)
+    // Use Vercel's internal URL for serverless-to-serverless calls
     const baseUrl = process.env.VERCEL_URL 
       ? `https://${process.env.VERCEL_URL}`
       : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     
-    console.log('Triggering processing for game:', gameId);
+    console.log('Triggering async processing for game:', gameId);
+    
+    // Fire and forget - don't await, let it run in background
     fetch(`${baseUrl}/api/process`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ gameId }),
-    })
-    .then(res => {
-      if (!res.ok) {
-        console.error('Processing trigger failed:', res.status, res.statusText);
-        return res.text().then(text => {
-          console.error('Processing error response:', text);
-        });
-      }
-      console.log('Processing triggered successfully');
-    })
-    .catch(err => {
-      console.error('Failed to trigger processing:', err);
-      console.error('Error details:', err.message, err.stack);
+    }).catch(err => {
+      // Silently log errors - processing will retry via polling
+      console.error('Background processing trigger failed (non-blocking):', err.message);
     });
 
     return Response.json({
