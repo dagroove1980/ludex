@@ -52,8 +52,12 @@ export async function POST(request) {
       const pdfText = await extractTextFromPDF(pdfBuffer);
       console.log('Text extracted, length:', pdfText.length);
 
-      if (!process.env.GEMINI_API_KEY) {
-        throw new Error('GEMINI_API_KEY environment variable is not set');
+      console.log('Checking OpenAI API key...');
+      console.log('OPENAI_API_KEY present:', !!process.env.OPENAI_API_KEY);
+      if (process.env.OPENAI_API_KEY) {
+        console.log('OPENAI_API_KEY prefix:', process.env.OPENAI_API_KEY.substring(0, 15) + '...');
+      } else {
+        throw new Error('OPENAI_API_KEY environment variable is not set');
       }
 
       console.log('Processing with AI...');
