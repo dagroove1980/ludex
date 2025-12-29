@@ -50,3 +50,13 @@ config.js
 !jsconfig.json
 !tsconfig.json
 !vercel.json
+
+# Training data (PDFs are too large - 4.1GB)
+Training/rules_pdfs/**/*.pdf
+Training/data/processed/
+Training/data/labeled/
+Training/data/splits/
+Training/models/
+Training/evaluation/
+*.pyc
+__pycache__/
