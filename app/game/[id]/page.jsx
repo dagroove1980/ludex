@@ -2,9 +2,10 @@
 
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import AuthButton from '@/components/AuthButton';
 import ChatInterface from '@/components/ChatInterface';
+import RulesTab from '@/components/RulesTab';
 
 export default function GamePage() {
   const { data: session } = useSession();
@@ -14,7 +15,8 @@ export default function GamePage() {
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('rules');
-  const [processingImage, setProcessingImage] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!session) {
@@ -51,22 +53,49 @@ export default function GamePage() {
     }
   }, [session, gameId, router, game?.status]);
 
-  const handleGenerateImage = async () => {
-    setProcessingImage(true);
+  const handleImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image size must be less than 10MB');
+      return;
+    }
+
+    setIsUploading(true);
+
     try {
-      const res = await fetch('/api/image', {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch(`/api/games/${gameId}/image`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameId: gameId }),
+        body: formData,
       });
-      const data = await res.json();
-      if (data.imageUrl) {
-        setGame((prev) => ({ ...prev, ogImageUrl: data.imageUrl }));
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to upload image');
       }
+
+      const data = await res.json();
+      setGame((prev) => ({ ...prev, ogImageUrl: data.imageUrl }));
     } catch (error) {
-      console.error('Failed to generate image:', error);
+      console.error('Image upload error:', error);
+      alert(`Failed to upload image: ${error.message}`);
     } finally {
-      setProcessingImage(false);
+      setIsUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -213,18 +242,33 @@ export default function GamePage() {
                       <span className="hidden sm:inline">Original PDF</span>
                     </a>
                   )}
-                  {!game.ogImageUrl && (
-                    <button
-                      onClick={handleGenerateImage}
-                      disabled={processingImage}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white dark:bg-[#302839] hover:bg-gray-50 dark:hover:bg-[#3c3247] text-slate-700 dark:text-white text-sm font-medium transition-colors border border-gray-200 dark:border-white/5 shadow-sm disabled:opacity-50"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">image</span>
-                      <span className="hidden sm:inline">
-                        {processingImage ? 'Generating...' : 'Regenerate Art'}
-                      </span>
-                    </button>
-                  )}
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white dark:bg-[#302839] hover:bg-gray-50 dark:hover:bg-[#3c3247] text-slate-700 dark:text-white text-sm font-medium transition-colors border border-gray-200 dark:border-white/5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUploading ? (
+                      <>
+                        <div className="size-5 border-2 border-slate-400/30 border-t-slate-600 dark:border-gray-500/30 dark:border-t-gray-300 rounded-full animate-spin" />
+                        <span className="hidden sm:inline">Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-[20px]">image</span>
+                        <span className="hidden sm:inline">
+                          {game.ogImageUrl ? 'Change Image' : 'Upload Image'}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                  {/* Hidden file input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
                 </div>
               </div>
             </div>
@@ -290,24 +334,7 @@ export default function GamePage() {
             {/* Tab Content */}
             <div className="flex-1 overflow-hidden relative w-full max-w-7xl mx-auto flex flex-col bg-slate-50 dark:bg-surface-dark/30 md:border-x border-gray-200 dark:border-white/5">
               {activeTab === 'rules' && (
-                <div className="flex-1 overflow-y-auto scrollbar-default p-6">
-                  {game.sections && game.sections.length > 0 ? (
-                    <div className="space-y-8 max-w-3xl">
-                      {game.sections.map((section, idx) => (
-                        <div key={idx} className="space-y-3">
-                          <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                            {section.title}
-                          </h3>
-                          <p className="text-slate-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-                            {section.content}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 dark:text-gray-400">No sections available</p>
-                  )}
-                </div>
+                <RulesTab ruleSections={game.ruleSections || game.sections} />
               )}
 
               {activeTab === 'strategy' && (

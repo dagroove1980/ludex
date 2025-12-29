@@ -12,20 +12,32 @@ export default function Home() {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const handleGameDelete = (deletedGameId) => {
+    setGames((prevGames) => prevGames.filter((game) => game.gameId !== deletedGameId));
+  };
+
+  const handleImageUpdate = (gameId, imageUrl) => {
+    setGames((prevGames) =>
+      prevGames.map((game) =>
+        game.gameId === gameId ? { ...game, ogImageUrl: imageUrl } : game
+      )
+    );
+  };
+
+  const fetchGames = async () => {
+    try {
+      const res = await fetch('/api/games');
+      const data = await res.json();
+      setGames(data.games || []);
+    } catch (error) {
+      console.error('Failed to fetch games:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (session) {
-      const fetchGames = async () => {
-        try {
-          const res = await fetch('/api/games');
-          const data = await res.json();
-          setGames(data.games || []);
-        } catch (error) {
-          console.error('Failed to fetch games:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-
       fetchGames();
       // Poll every 5 seconds for updates
       const interval = setInterval(fetchGames, 5000);
@@ -173,7 +185,12 @@ export default function Home() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {games.map((game) => (
-                      <GameCard key={game.gameId} game={game} />
+                      <GameCard
+                        key={game.gameId}
+                        game={game}
+                        onDelete={handleGameDelete}
+                        onImageUpdate={handleImageUpdate}
+                      />
                     ))}
                     {/* Add New Card */}
                     <div className="flex flex-col items-center justify-center bg-transparent rounded-xl border-2 border-dashed border-gray-300 dark:border-[#302839] hover:border-primary/50 hover:bg-gray-50 dark:hover:bg-[#1e1726]/50 transition-all cursor-pointer min-h-[250px] group">

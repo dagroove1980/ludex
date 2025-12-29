@@ -33,7 +33,8 @@ export async function POST(request) {
           responseType: 'arraybuffer',
         });
         const imageBuffer = Buffer.from(imageResponse.data);
-        const uploadedUrl = await uploadImage(imageBuffer, gameId);
+        const contentType = imageResponse.headers['content-type'] || 'image/jpeg';
+        const uploadedUrl = await uploadImage(imageBuffer, gameId, contentType);
         
         // Update game
         await updateGame(gameId, session.user.id, {

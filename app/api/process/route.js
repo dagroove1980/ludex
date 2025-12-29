@@ -7,6 +7,8 @@ import axios from 'axios';
 
 export const maxDuration = 60; // 60 seconds - Vercel Hobby limit is 10s, but we'll try
 
+const PYTHON_SERVICE_URL = process.env.PYTHON_SERVICE_URL;
+
 export async function POST(request) {
   try {
     console.log('Processing request received');
@@ -38,49 +40,90 @@ export async function POST(request) {
     }
 
     try {
-      console.log('Downloading PDF from:', game.pdfUrl);
-      // Download PDF
-      const pdfResponse = await axios.get(game.pdfUrl, {
-        responseType: 'arraybuffer',
-        timeout: 30000, // 30 second timeout
-      });
-      const pdfBuffer = Buffer.from(pdfResponse.data);
-      console.log('PDF downloaded, size:', pdfBuffer.length);
+      // Use Python service if available, otherwise fall back to OpenAI
+      if (PYTHON_SERVICE_URL) {
+        console.log('Using Python service for processing:', PYTHON_SERVICE_URL);
+        
+        // Call Python service
+        const pythonResponse = await axios.post(
+          `${PYTHON_SERVICE_URL}/process`,
+          {
+            gameId: gameId,
+            pdfUrl: game.pdfUrl,
+            userId: session.user.id,
+          },
+          {
+            timeout: 60000, // 60 second timeout for PDF processing
+          }
+        );
 
-      console.log('Extracting text from PDF...');
-      // Extract text
-      const pdfText = await extractTextFromPDF(pdfBuffer);
-      console.log('Text extracted, length:', pdfText.length);
+        const processed = pythonResponse.data;
+        console.log('Python service processing complete');
 
-      console.log('Checking OpenAI API key...');
-      console.log('OPENAI_API_KEY present:', !!process.env.OPENAI_API_KEY);
-      if (process.env.OPENAI_API_KEY) {
-        console.log('OPENAI_API_KEY prefix:', process.env.OPENAI_API_KEY.substring(0, 15) + '...');
+        // Update game in Sheets with structured rules
+        await updateGame(gameId, session.user.id, {
+          status: 'completed',
+          ruleSections: processed.sections || [],
+          sections: processed.sections || [], // Keep for backward compatibility
+          strategyTips: [], // Python service doesn't generate these yet
+          quickStart: {}, // Python service doesn't generate this yet
+          updatedAt: new Date().toISOString(),
+        });
+
+        console.log('Game processing completed successfully:', gameId);
+        return Response.json({
+          success: true,
+          gameId,
+          status: 'completed',
+        });
       } else {
-        throw new Error('OPENAI_API_KEY environment variable is not set');
+        // Fallback to OpenAI processing
+        console.log('Python service not configured, using OpenAI fallback');
+        console.log('Downloading PDF from:', game.pdfUrl);
+        
+        // Download PDF
+        const pdfResponse = await axios.get(game.pdfUrl, {
+          responseType: 'arraybuffer',
+          timeout: 30000, // 30 second timeout
+        });
+        const pdfBuffer = Buffer.from(pdfResponse.data);
+        console.log('PDF downloaded, size:', pdfBuffer.length);
+
+        console.log('Extracting text from PDF...');
+        // Extract text
+        const pdfText = await extractTextFromPDF(pdfBuffer);
+        console.log('Text extracted, length:', pdfText.length);
+
+        console.log('Checking OpenAI API key...');
+        console.log('OPENAI_API_KEY present:', !!process.env.OPENAI_API_KEY);
+        if (process.env.OPENAI_API_KEY) {
+          console.log('OPENAI_API_KEY prefix:', process.env.OPENAI_API_KEY.substring(0, 15) + '...');
+        } else {
+          throw new Error('OPENAI_API_KEY environment variable is not set');
+        }
+
+        console.log('Processing with AI...');
+        // Process with AI
+        const processed = await processGameRules(game.title, pdfText);
+        console.log('AI processing complete');
+
+        console.log('Updating game in Sheets...');
+        // Update game in Sheets
+        await updateGame(gameId, session.user.id, {
+          status: 'completed',
+          sections: processed.sections || [],
+          strategyTips: processed.strategyTips || [],
+          quickStart: processed.quickStart || {},
+          updatedAt: new Date().toISOString(),
+        });
+
+        console.log('Game processing completed successfully:', gameId);
+        return Response.json({
+          success: true,
+          gameId,
+          status: 'completed',
+        });
       }
-
-      console.log('Processing with AI...');
-      // Process with AI
-      const processed = await processGameRules(game.title, pdfText);
-      console.log('AI processing complete');
-
-      console.log('Updating game in Sheets...');
-      // Update game in Sheets
-      await updateGame(gameId, session.user.id, {
-        status: 'completed',
-        sections: processed.sections || [],
-        strategyTips: processed.strategyTips || [],
-        quickStart: processed.quickStart || {},
-        updatedAt: new Date().toISOString(),
-      });
-
-      console.log('Game processing completed successfully:', gameId);
-      return Response.json({
-        success: true,
-        gameId,
-        status: 'completed',
-      });
     } catch (error) {
       console.error('Processing error:', error);
       console.error('Error stack:', error.stack);
