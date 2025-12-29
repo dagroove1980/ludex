@@ -6,7 +6,6 @@ import { processGameRules } from '@/lib/aiProcessor';
 import axios from 'axios';
 
 export const maxDuration = 60; // 60 seconds - Vercel Hobby limit is 10s, but we'll try
-export const runtime = 'nodejs20'; // Use Node.js 20 runtime
 
 export async function POST(request) {
   try {
